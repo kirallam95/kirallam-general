@@ -35,9 +35,20 @@ conn = snowflake.connector.connect(
     , role = 'TRANSFORMER'
 )
 
+query = '''
+    SELECT
+        market
+        , frame_code
+        , TO_CHAR(s3_sf_ingestion_time, 'DD-MM-YYYY HH24:MI:SS') AS s3_sf_ingestion_time
+    FROM prd_stg_asset
+    WHERE
+        s3_sf_ingestion_time > CURRENT_DATE
+    LIMIT 10
+'''
+
 try:
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM prd_stg_asset WHERE s3_sf_ingestion_time > CURRENT_DATE LIMIT 10")
+    cursor.execute(query)
     rows = cursor.fetchall()
 
     print("Query Results:")
