@@ -1,0 +1,13 @@
+name: Scheduled Hello World
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # Runs every hour, on the hour (UTC time)
+  workflow_dispatch:      # Allows manual trigger too
+
+jobs:
+  say_hello:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print Hello World
+        run: echo "Hello world! The time is $(date)"
