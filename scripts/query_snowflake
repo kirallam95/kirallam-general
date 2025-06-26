@@ -1,0 +1,49 @@
+import snowflake.connector
+import os
+
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.backends import default_backend
+
+# Load private key from file or environment
+private_key_path = r"C:\Users\kiral.lam\Documents\private_key_dbt.p8"
+private_key_passphrase = b"KLAM_VIOOH"
+
+# Load encrypted private key
+with open(private_key_path, "rb") as key_file:
+    p_key = serialization.load_pem_private_key(
+        key_file.read(),
+        password=private_key_passphrase,
+        backend=default_backend()
+    )
+
+# Convert key to bytes (DER format, PKCS8)
+private_key_bytes = p_key.private_bytes(
+    encoding=serialization.Encoding.DER,
+    format=serialization.PrivateFormat.PKCS8,
+    encryption_algorithm=serialization.NoEncryption()
+)
+
+# Replace with your actual credentials or load from environment variables / secrets
+conn = snowflake.connector.connect(
+    user = 'kiral.lam@viooh.com'
+    # , password = 'XXX'
+    , private_key = private_key_bytes
+    , account = 'tt42493.eu-west-2.aws'
+    , warehouse = 'ANALYTICS_TRANSFORM'
+    , database = 'ANALYTICS_QA'
+    , schema = 'STAGING'
+    , role = 'TRANSFORMER'
+)
+
+try:
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM prd_stg_asset WHERE s3_sf_ingestion_time > CURRENT_DATE LIMIT 10")
+    rows = cursor.fetchall()
+
+    print("Query Results:")
+    for row in rows:
+        print(row)
+
+finally:
+    cursor.close()
+    conn.close()
